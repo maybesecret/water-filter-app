@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Language Code Runner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e1e;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #2d2d30;
+            padding: 15px 20px;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            background: #2d2d30;
+            padding: 0 20px;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #fff;
+        }
+
+        .tab.active {
+            color: #fff;
+            border-bottom-color: #007acc;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .editor-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #3e3e42;
+        }
+
+        .editor-container {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .editor-container.active {
+            display: flex;
+        }
+
+        textarea {
+            flex: 1;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+        }
+
+        .controls {
+            background: #2d2d30;
+            padding: 10px 15px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #3e3e42;
+        }
+
+        button {
+            padding: 8px 16px;
+            background: #007acc;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #005a9e;
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .clear-btn {
+            background: #d73a49;
+        }
+
+        .clear-btn:hover {
+            background: #b52a37;
+        }
+
+        .output-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #252526;
+        }
+
+        .output-header {
+            background: #2d2d30;
+            padding: 10px 15px;
+            border-bottom: 1px solid #3e3e42;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        #output {
+            flex: 1;
+            padding: 15px;
+            overflow: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #preview-frame {
+            flex: 1;
+            border: none;
+            background: white;
+        }
+
+        .output-content {
+            display: none;
+        }
+
+        .output-content.active {
+            display: block;
+            flex: 1;
+        }
+
+        .error {
+            color: #f48771;
+        }
+
+        .success {
+            color: #89d185;
+        }
+
+        .status {
+            background: #007acc;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: auto;
+        }
+
+        .loading {
+            color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Multi-Language Code Runner</h1>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-lang="html">HTML</button>
+        <button class="tab" data-lang="css">CSS</button>
+        <button class="tab" data-lang="javascript">JavaScript</button>
+        <button class="tab" data-lang="python">Python</button>
+    </div>
+
+    <div class="main-container">
+        <div class="editor-section">
+            <div class="editor-container active" data-editor="html">
+                <textarea id="html-code" placeholder="<!-- Write your HTML code here -->"><!DOCTYPE html>
+<html>
+<head>
+    <title>My Page</title>
+</head>
+<body>
+    <h1>Hello World!</h1>
+    <p>This is a test page.</p>
+</body>
+</html></textarea>
+            </div>
+
+            <div class="editor-container" data-editor="css">
+                <textarea id="css-code" placeholder="/* Write your CSS code here */">body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+}
+
+h1 {
+    color: #ffd700;
+}</textarea>
+            </div>
+
+            <div class="editor-container" data-editor="javascript">
+                <textarea id="js-code" placeholder="// Write your JavaScript code here">console.log('Hello from JavaScript!');
+
+// Example: Change the heading color
+const heading = document.querySelector('h1');
+if (heading) {
+    heading.style.color = '#00ff00';
+}</textarea>
+            </div>
+
+            <div class="editor-container" data-editor="python">
+                <textarea id="python-code" placeholder="# Write your Python code here">print('Hello from Python!')
+
+# Example: Calculate factorial
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+print(f'Factorial of 5 is: {factorial(5)}')</textarea>
+            </div>
+
+            <div class="controls">
+                <button id="run-btn">Run Code</button>
+                <button id="clear-btn" class="clear-btn">Clear Output</button>
+                <span class="status" id="status">Ready</span>
+            </div>
+        </div>
+
+        <div class="output-section">
+            <div class="output-header">Output</div>
+            
+            <div id="output" class="output-content"></div>
+            
+            <iframe id="preview-frame" class="output-content"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const tabs = document.querySelectorAll('.tab');
+        const editors = document.querySelectorAll('.editor-container');
+        const runBtn = document.getElementById('run-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const output = document.getElementById('output');
+        const previewFrame = document.getElementById('preview-frame');
+        const status = document.getElementById('status');
+        
+        let currentLang = 'html';
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const lang = tab.dataset.lang;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                editors.forEach(e => e.classList.remove('active'));
+                document.querySelector(`[data-editor="${lang}"]`).classList.add('active');
+                
+                if (lang === 'python') {
+                    output.classList.add('active');
+                    previewFrame.classList.remove('active');
+                } else {
+                    output.classList.remove('active');
+                    previewFrame.classList.add('active');
+                }
+                
+                currentLang = lang;
+            });
+        });
+
+        runBtn.addEventListener('click', async () => {
+            if (currentLang === 'python') {
+                await runPython();
+            } else {
+                runWebCode();
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            output.textContent = '';
+            const iframe = document.getElementById('preview-frame');
+            iframe.src = 'about:blank';
+            updateStatus('Cleared', 'success');
+        });
+
+        async function runPython() {
+            const code = document.getElementById('python-code').value;
+            output.textContent = '';
+            updateStatus('Running Python...', 'loading');
+            runBtn.disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:5000/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        language: 'python'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    output.textContent = result.output || '(No output)';
+                    output.className = 'output-content active success';
+                    updateStatus('Success!', 'success');
+                } else {
+                    output.textContent = result.error;
+                    output.className = 'output-content active error';
+                    updateStatus('Error', 'error');
+                }
+            } catch (error) {
+                output.textContent = `Cannot connect to backend server.\n\nMake sure:\n1. Python backend is running (python app.py)\n2. Server is at http://localhost:5000\n\nError: ${error.message}`;
+                output.className = 'output-content active error';
+                updateStatus('Connection Failed', 'error');
+            } finally {
+                runBtn.disabled = false;
+            }
+        }
+
+        function runWebCode() {
+            const htmlCode = document.getElementById('html-code').value;
+            const cssCode = document.getElementById('css-code').value;
+            const jsCode = document.getElementById('js-code').value;
+
+            updateStatus('Running...', 'loading');
+
+            const iframe = document.getElementById('preview-frame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+            const fullCode = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>${cssCode}</style>
+                </head>
+                <body>
+                    ${htmlCode}
+                    <script>
+                        try {
+                            ${jsCode}
+                        } catch (error) {
+                            document.body.innerHTML += '<div style="background: #f44; color: white; padding: 10px; margin: 10px; border-radius: 5px;">JavaScript Error: ' + error.message + '</div>';
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `;
+
+            iframeDoc.open();
+            iframeDoc.write(fullCode);
+            iframeDoc.close();
+
+            updateStatus('Success!', 'success');
+        }
+
+        function updateStatus(text, type) {
+            status.textContent = text;
+            status.style.background = type === 'loading' ? '#ffa500' : type === 'error' ? '#d73a49' : '#28a745';
+        }
+
+        runWebCode();
+    </script>
+</body>
+</html>
