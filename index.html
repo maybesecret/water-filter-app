@@ -323,7 +323,7 @@ print(f'Factorial of 5 is: {factorial(5)}')</textarea>
             runBtn.disabled = true;
 
             try {
-                const response = await fetch('http://localhost:5000/execute', {
+                const response = await fetch('https://water-filter-app.onrender.com/execute', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -346,7 +346,7 @@ print(f'Factorial of 5 is: {factorial(5)}')</textarea>
                     updateStatus('Error', 'error');
                 }
             } catch (error) {
-                output.textContent = `Cannot connect to backend server.\n\nMake sure:\n1. Python backend is running (python app.py)\n2. Server is at http://localhost:5000\n\nError: ${error.message}`;
+                output.textContent = `Cannot connect to backend server.\n\nMake sure:\n1. Python backend is running (python app.py)\n2. Server is at https://water-filter-app.onrender.com\n\nError: ${error.message}`;
                 output.className = 'output-content active error';
                 updateStatus('Connection Failed', 'error');
             } finally {
