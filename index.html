@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -191,7 +190,6 @@
         }
     </style>
 </head>
-
 <body>
     <div class="header">
         <h1>Multi-Language Code Runner</h1>
@@ -233,7 +231,9 @@ h1 {
             </div>
 
             <div class="editor-container" data-editor="javascript">
-                <textarea id="js-code" placeholder="// Write your JavaScript code here">console.log('Hello from JavaScript!'); // Example: Change the heading color
+                <textarea id="js-code" placeholder="// Write your JavaScript code here">console.log('Hello from JavaScript!');
+
+// Example: Change the heading color
 const heading = document.querySelector('h1');
 if (heading) {
     heading.style.color = '#00ff00';
@@ -241,7 +241,9 @@ if (heading) {
             </div>
 
             <div class="editor-container" data-editor="python">
-                <textarea id="python-code" placeholder="# Write your Python code here">print('Hello from Python!')  # Example: Calculate factorial
+                <textarea id="python-code" placeholder="# Write your Python code here">print('Hello from Python!')
+
+# Example: Calculate factorial
 def factorial(n):
     if n <= 1:
         return 1
@@ -259,48 +261,141 @@ print(f'Factorial of 5 is: {factorial(5)}')</textarea>
 
         <div class="output-section">
             <div class="output-header">Output</div>
-
+            
             <div id="output" class="output-content"></div>
-
+            
             <iframe id="preview-frame" class="output-content"></iframe>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const tabs = document.querySelectorAll('.tab');
-            const editors = document.querySelectorAll('.editor-container');
-            const runBtn = document.getElementById('run-btn');
-            const clearBtn = document.getElementById('clear-btn');
-            const output = document.getElementById('output');
-            const previewFrame = document.getElementById('preview-frame');
-            const status = document.getElementById('status');
+        const tabs = document.querySelectorAll('.tab');
+        const editors = document.querySelectorAll('.editor-container');
+        const runBtn = document.getElementById('run-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const output = document.getElementById('output');
+        const previewFrame = document.getElementById('preview-frame');
+        const status = document.getElementById('status');
+        
+        let currentLang = 'html';
 
-            let currentLang = 'html';
-
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const lang = tab.dataset.lang;
-
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-
-                    editors.forEach(e => e.classList.remove('active'));
-                    document.querySelector(`[data-editor="${lang}"]`).classList.add('active');
-
-                    if (lang === 'python') {
-                        output.classList.add('active');
-                        previewFrame.classList.remove('active');
-                    } else {
-                        output.classList.remove('active');
-                        previewFrame.classList.add('active');
-                    }
-
-                    currentLang = lang;
-                });
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const lang = tab.dataset.lang;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                editors.forEach(e => e.classList.remove('active'));
+                document.querySelector(`[data-editor="${lang}"]`).classList.add('active');
+                
+                if (lang === 'python') {
+                    output.classList.add('active');
+                    previewFrame.classList.remove('active');
+                } else {
+                    output.classList.remove('active');
+                    previewFrame.classList.add('active');
+                }
+                
+                currentLang = lang;
             });
+        });
 
-            runBtn.addEventListener('click', async () => {
-                if (currentLang === 'python') {
-                    await runPython
+        runBtn.addEventListener('click', async () => {
+            if (currentLang === 'python') {
+                await runPython();
+            } else {
+                runWebCode();
+            }
+        });
 
+        clearBtn.addEventListener('click', () => {
+            output.textContent = '';
+            const iframe = document.getElementById('preview-frame');
+            iframe.src = 'about:blank';
+            updateStatus('Cleared', 'success');
+        });
+
+        async function runPython() {
+            const code = document.getElementById('python-code').value;
+            output.textContent = '';
+            updateStatus('Running Python...', 'loading');
+            runBtn.disabled = true;
+
+            try {
+                const response = await fetch('https://water-filter-app.onrender.com/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        language: 'python'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    output.textContent = result.output || '(No output)';
+                    output.className = 'output-content active success';
+                    updateStatus('Success!', 'success');
+                } else {
+                    output.textContent = result.error;
+                    output.className = 'output-content active error';
+                    updateStatus('Error', 'error');
+                }
+            } catch (error) {
+                output.textContent = `Cannot connect to backend server.\n\nMake sure:\n1. Python backend is running\n2. Server is at https://water-filter-app.onrender.com\n\nError: ${error.message}`;
+                output.className = 'output-content active error';
+                updateStatus('Connection Failed', 'error');
+            } finally {
+                runBtn.disabled = false;
+            }
+        }
+
+        function runWebCode() {
+            const htmlCode = document.getElementById('html-code').value;
+            const cssCode = document.getElementById('css-code').value;
+            const jsCode = document.getElementById('js-code').value;
+
+            updateStatus('Running...', 'loading');
+
+            const iframe = document.getElementById('preview-frame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+            const fullCode = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>${cssCode}</style>
+                </head>
+                <body>
+                    ${htmlCode}
+                    <script>
+                        try {
+                            ${jsCode}
+                        } catch (error) {
+                            document.body.innerHTML += '<div style="background: #f44; color: white; padding: 10px; margin: 10px; border-radius: 5px;">JavaScript Error: ' + error.message + '</div>';
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `;
+
+            iframeDoc.open();
+            iframeDoc.write(fullCode);
+            iframeDoc.close();
+
+            updateStatus('Success!', 'success');
+        }
+
+        function updateStatus(text, type) {
+            status.textContent = text;
+            status.style.background = type === 'loading' ? '#ffa500' : type === 'error' ? '#d73a49' : '#28a745';
+        }
+
+        runWebCode();
+    </script>
+</body>
+</html>
